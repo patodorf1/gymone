@@ -118,6 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt->execute()) {
       $alerts_html .= '<div class="alert alert-success">Sikeres regisztráció!</div>';
       header("Refresh: 5");
+      if (!empty($smtp_username) && !empty($smtp_host)) {
       $transport = (new Swift_SmtpTransport($smtp_host, $smtp_port, $smtp_encryption))
         ->setUsername($smtp_username)
         ->setPassword($smtp_password);
@@ -190,16 +191,12 @@ EOD;
       $recipientEmail = $email;
       $subject = $translations["confirmemailmailsub"];
 
-      $isRegistrationSuccessful = true;
-
-      if ($isRegistrationSuccessful) {
-        $message = (new Swift_Message($subject))
-          ->setFrom(["{$smtp_username}" => "{$ConfirmEmailPage_PLACEHOLDER}"])
-          ->setTo([$recipientEmail])
-          ->setBody($successEmailContent, 'text/html');
-      }
-      $result = $mailer->send($message);
-      header("Refresh: 5");
+      $message = (new Swift_Message($subject))
+        ->setFrom(["{$smtp_username}" => "{$ConfirmEmailPage_PLACEHOLDER}"])
+        ->setTo([$recipientEmail])
+        ->setBody($successEmailContent, 'text/html');
+      $mailer->send($message);
+      } // end if smtp configured
     }
 
     $stmt->close();
