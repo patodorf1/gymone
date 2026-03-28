@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     unzip \
-    git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         pdo_mysql \
@@ -23,9 +22,11 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Set working directory
 WORKDIR /var/www/html
 
-# Clone the repository
-RUN git clone https://github.com/mayerbalintdev/GYM-One.git . \
-    && composer install --no-dev --optimize-autoloader
+# Copy application source
+COPY --chown=www-data:www-data . .
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
 # Apache config: allow .htaccess overrides
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/sites-available/000-default.conf
