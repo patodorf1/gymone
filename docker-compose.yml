@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8085}:80"
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=${DB_USER:-gymone}
+      - DB_PASS=${DB_PASS:-gymone}
+      - DB_NAME=${DB_NAME:-gymone}
+      - BUSINESS_NAME=${BUSINESS_NAME:-My Gym}
+      - COUNTRY=${COUNTRY:-Argentina}
+      - CURRENCY=${CURRENCY:-ARS}
+      - CITY=${CITY:-Buenos Aires}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - GYM_CAPACITY=${GYM_CAPACITY:-20}
+      - AUTOACCEPT=${AUTOACCEPT:-FALSE}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS:-rootpass123}
+      - MYSQL_DATABASE=${DB_NAME:-gymone}
+      - MYSQL_USER=${DB_USER:-gymone}
+      - MYSQL_PASSWORD=${DB_PASS:-gymone}
+    volumes:
+      - gymone_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  gymone_db:
