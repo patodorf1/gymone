@@ -115,7 +115,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $ConfirmEmailFooterWhy_PLACEHOLDER = str_replace("{business_name}", $business_name, $translations["confirmemailfooterwhy"]);
 
 
-    if ($stmt->execute()) {
+    try {
+      $stmt->execute();
+    } catch (mysqli_sql_exception $e) {
+      if ($e->getCode() == 1062) {
+        $alerts_html .= '<div class="alert alert-danger">' . ($translations["emailalreadyexists"] ?? 'This email address is already registered.') . '</div>';
+      } else {
+        $alerts_html .= '<div class="alert alert-danger">' . ($translations["registrationerror"] ?? 'Registration failed. Please try again.') . '</div>';
+      }
+      $stmt->close();
+      $conn->close();
+    }
+
+    if (!$conn->connect_error && !isset($e)) {
       $alerts_html .= '<div class="alert alert-success">Sikeres regisztráció!</div>';
       header("Refresh: 5");
       if (!empty($smtp_username) && !empty($smtp_host)) {
